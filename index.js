@@ -2,6 +2,7 @@ const { Requester, Validator } = require("@chainlink/external-adapter");
 
 // Require library to create signature
 const crypto = require("crypto");
+require("dotenv").config();
 
 // Define custom error scenarios for the API.
 // Return true for the adapter to retry.
@@ -27,10 +28,7 @@ const customParams = {
 // This function also contains the secret api-key
 function createSignature(query_string) {
   return crypto
-    .createHmac(
-      "sha256",
-      "XvukVC3bfstDrWQh9M4Vvh4qw3TsF6K6F40wqeQEZvmwVuZEzbGgajM7alhxeijj"
-    )
+    .createHmac("sha256", process.env.SKEY)
     .update(query_string)
     .digest("hex");
 }
@@ -47,7 +45,7 @@ const createRequest = (input, callback) => {
   const asset = validator.validated.data.asset.toUpperCase();
   const address = validator.validated.data.address;
   const amount = validator.validated.data.amount;
-  const recvWindow = 5000;
+  const recvWindow = 25000;
   const timestamp = Date.now();
 
   // Creating the input for the createSignature function
@@ -69,16 +67,18 @@ const createRequest = (input, callback) => {
     signature,
   };
 
-  // Added extra header for the api-key
-  const header = {
-    "X-MBX-APIKEY":
-      "4Se66jSeETSGkHXrMyJNjW98OZTuN9N29ODLvNfTgH4LGgJLuml8N3yCdRd056Hs",
-  };
+  // // Added extra header for the api-key
+  // const headers = {
+  //   "X-MBX-APIKEY":
+  //     "4Se66jSeETSGkHXrMyJNjW98OZTuN9N29ODLvNfTgH4LGgJLuml8N3yCdRd056Hs",
+  // };
 
   const config = {
+    method: "post",
     url,
-    params,
-    header,
+    headers: {
+      "X-MBX-APIKEY": process.env.API_key,
+    },
   };
 
   // The Requester allows API calls be retry in case of timeout

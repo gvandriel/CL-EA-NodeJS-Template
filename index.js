@@ -45,7 +45,7 @@ const createRequest = (input, callback) => {
   const asset = validator.validated.data.asset.toUpperCase();
   const address = validator.validated.data.address;
   const amount = validator.validated.data.amount;
-  const recvWindow = 25000;
+  const recvWindow = 5000;
   const timestamp = Date.now();
 
   // Creating the input for the createSignature function
@@ -58,7 +58,7 @@ const createRequest = (input, callback) => {
   totalstring = url + "?" + inputString + "&signature=" + signature;
   console.log("The totalstring: " + totalstring);
 
-  const params = {
+  const data = {
     asset,
     address,
     amount,
@@ -67,18 +67,13 @@ const createRequest = (input, callback) => {
     signature,
   };
 
-  // // Added extra header for the api-key
-  // const headers = {
-  //   "X-MBX-APIKEY":
-  //     "4Se66jSeETSGkHXrMyJNjW98OZTuN9N29ODLvNfTgH4LGgJLuml8N3yCdRd056Hs",
-  // };
-
   const config = {
     method: "post",
     url,
     headers: {
       "X-MBX-APIKEY": process.env.API_key,
     },
+    data,
   };
 
   // The Requester allows API calls be retry in case of timeout
@@ -88,9 +83,7 @@ const createRequest = (input, callback) => {
       // It's common practice to store the desired value at the top-level
       // result key. This allows different adapters to be compatible with
       // one another.
-      response.data.result = Requester.validateResultNumber(response.data, [
-        "msg",
-      ]);
+      response.data.result = Requester.getResult(response.data, ["msg"]);
       callback(response.status, Requester.success(jobRunID, response));
     })
     .catch((error) => {
